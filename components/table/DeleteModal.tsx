@@ -3,19 +3,17 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { db, storage } from "@/firebase";
 import { useAppStore } from "@/store/store";
 import { useUser } from "@clerk/nextjs";
 import { deleteDoc, doc } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
+import toast from "react-hot-toast";
 
 export function DeleteModal() {
   const { setIsDeleteModalOpen, isDeleteModalOpen, fileId } = useAppStore();
@@ -27,17 +25,19 @@ export function DeleteModal() {
 
     const fileRef = ref(storage, `users/${user.id}/files/${fileId}`);
 
+    const toastId = toast.loading("Deleting file...");
+
     try {
       deleteObject(fileRef);
       deleteDoc(doc(db, "users", user.id, "files", fileId))
         .then(() => {
-          // toast notification
+          toast.success("File deleted successfully!", { id: toastId });
         })
         .finally(() => {
           setIsDeleteModalOpen(false);
         });
     } catch (error) {
-      // toast notification
+      toast.error("Something went wrong!", { id: toastId });
     }
   }
   return (
